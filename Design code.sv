@@ -26,7 +26,7 @@ logic [7:0] mem [31:0]; // define memory
   ack <= 1'b1; // Permission to act
   mem [wr_ptr] <= data_in;
   internal_reg <= data_in;
-    wr_ptr <= wr_ptr +  1;
+  wr_ptr <= wr_ptr +  1;
   end
     else if (!req) begin 
       ack <= 1'b0;
@@ -35,14 +35,13 @@ logic [7:0] mem [31:0]; // define memory
     endmodule
 
     interface req_ack_if (input logic clk);
-    logic clk, 
-    logic reset_n, // A-Sychronize reset
-    logic ack, 
-    logic [7:0] data_in, // 2^8 = 256 = 0-255
+    logic reset_n; // A-Sychronize reset
+    logic ack;
+      logic [7:0] data_in; // 2^8 = 256 = 0-255
 
-    logic req,
-    logic internal_reg [7:0],
-    logic wr_ptr [4:0] // pointer that saying what is the next adress in the memory, 2^5 =
+    logic req;
+      logic [7:0] internal_reg;
+      logic [4:0] wr_ptr; // pointer that saying what is the next adress in the memory, 2^5 =
 
     // בדיקה שהדאטה לא משתנה בזמן Handshake
     property p_stable_data;
