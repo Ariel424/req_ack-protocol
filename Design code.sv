@@ -2,12 +2,12 @@ module req_ack_with_mem (
   
 input logic clk, 
 input logic reset_n, // A-Sychronize reset
-input logic ack, 
+input logic req, 
 input logic [7:0] data_in, // 2^8 = 256 = 0-255
 
-output logic req,
-output logic internal_reg [7:0],
-output logic wr_ptr [4:0] // pointer that saying what is the next adress in the memory, 2^5 =
+output logic ack,
+output logic [7:0] internal_reg,
+output logic  [4:0] wr_ptr  // pointer that saying what is the next adress in the memory, 2^5 =
 
 );
 
@@ -32,16 +32,17 @@ logic [7:0] mem [31:0]; // define memory
       ack <= 1'b0;
     end 
   end 
+  end
     endmodule
 
     interface req_ack_if (input logic clk);
     logic reset_n; // A-Sychronize reset
     logic ack;
-      logic [7:0] data_in; // 2^8 = 256 = 0-255
+    logic [7:0] data_in; // 2^8 = 256 = 0-255
 
     logic req;
-      logic [7:0] internal_reg;
-      logic [4:0] wr_ptr; // pointer that saying what is the next adress in the memory, 2^5 =
+    logic [7:0] internal_reg;
+    logic [4:0] wr_ptr; // pointer that saying what is the next adress in the memory, 2^5 =
 
     // בדיקה שהדאטה לא משתנה בזמן Handshake
     property p_stable_data;
