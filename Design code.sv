@@ -1,49 +1,35 @@
-module req_ack_with_mem (
-  
-input logic clk, 
-input logic reset_n, // A-Sychronize reset
-input logic req, 
-input logic [7:0] data_in, // 2^8 = 256 = 0-255
-
-output logic ack,
-output logic [7:0] internal_reg,
-output logic  [4:0] wr_ptr  // pointer that saying what is the next adress in the memory, 2^5 =
-
+module req_ack (
+    input  logic       clk,
+    input  logic       reset_n, // Asynchronous reset
+    input  logic       req,
+    input  logic [7:0] data_in,
+    
+    output logic       ack,
+    output logic [7:0] intern_register,
+    output logic [4:0] wr_pointer
 );
 
-logic [7:0] mem [31:0]; // define memory 
-  
-// Sequential Logic 
+    // Memory: 32 entries of 8-bit each
+    logic [7:0] mem [31:0];
 
-  always_ff @(posedge clk or negedge reset_n) begin 
-  if (!reset_n) begin 
-  ack <= 1'b0;
-  wr_ptr <= 5'b00;
-  internal_reg <= 8'b00;
-  end
-  else begin 
-  if (req && !ack) begin 
-  ack <= 1'b1; // Permission to act
-  mem [wr_ptr] <= data_in;
-  internal_reg <= data_in;
-  wr_ptr <= wr_ptr +  1;
-  end
-    else if (!req) begin 
-      ack <= 1'b0;
-    end 
-  end 
-  end
-    endmodule
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            ack             <= 1'b0;
+            intern_register <= 8'h00;
+            wr_pointer      <= 5'h00;
+        end else begin
+            if (req && !ack) begin
+                ack             <= 1'b1;
+                mem[wr_pointer] <= data_in; // Using pointer for memory address
+                wr_pointer      <= wr_pointer + 1'b1;
+                intern_register <= data_in; // Assuming you want to store the last data
+            end else if (!req) begin
+                ack             <= 1'b0;
+            end
+        end
+    end
 
-    interface req_ack_if (input logic clk);
-    logic reset_n; // A-Sychronize reset
-    logic ack;
-    logic [7:0] data_in; // 2^8 = 256 = 0-255
-
-    logic req;
-    logic [7:0] internal_reg;
-    logic [4:0] wr_ptr; // pointer that saying what is the next adress in the memory, 2^5 =
-
+endmodule
     // בדיקה שהדאטה לא משתנה בזמן Handshake
     property p_stable_data;
         @(posedge clk) (req && !ack) |=> $stable(data_in) throughout (ack [->1]);
