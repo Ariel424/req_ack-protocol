@@ -158,3 +158,29 @@ endclass
     agent.monitor.item_collected_port.connect(scoreboard.monitor_fifo.analysis_export);
   endfunction
 endclass
+
+    class my_test extends uvm_test;
+  `uvm_component_utils(my_test)
+
+  my_env env;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  // בונים את ה-Environment
+  function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    env = my_env::type_id::create("env", this);
+  endfunction
+
+  virtual task run_phase(uvm_phase phase);
+    // כאן נגדיר את תחילת וסיום הטסט
+    phase.raise_objection(this);
+    
+    // כאן מריצים את ה-Sequence (התרחיש)
+    #100; // דוגמה להמתנה פשוטה
+    
+    phase.drop_objection(this);
+  endtask
+endclass
