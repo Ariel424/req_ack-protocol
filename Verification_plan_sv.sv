@@ -57,7 +57,7 @@ class driver
       @(posedge vif.clk); // waiting for another clocking 
       vif.req <= 1'b0; 
       wait (vif.ack == 1'b0);
-      $display ("Driver]: Transaction Finished successfully");
+      $display ("[Driver]: Transaction Finished successfully");
     end
   endtask 
 endclass 
