@@ -76,20 +76,128 @@ class monitor;
     forever begin
       @(posedge vif.clk);
       if (vif.ack == 1'b1) begin
-        trans = new(); 
-        
+        trans = new();
         trans.data_in = vif.internal_reg; 
-        
         mon2scb.put(trans);
-        
-        $display("[Monitor] Detected Transaction: Data = 0x%h, Write Ptr = %0d", 
-                  vif.internal_reg, vif.wr_ptr);
-                  
-        // 5. מחכים שה-ACK ירד לפני שמחפשים את הטרנזקציה הבאה
+        $display("[Monitor] Detected Transaction: Data = 0x%h, Write Ptr = %0d", vif.internal_reg, vif.wr_ptr);        
         wait(vif.ack == 1'b0);
       end
     end
   endtask
 endclass
+
+class scoreboard;
+  mailbox mon2scb;       // מקבל נתונים מהמוניטור
+  mailbox gen2scb;       // מקבל את הנתונים המקוריים מהגנרטור (ליצירת ה-Expected Data)
+  
+  transaction exp_trans; // החבילה שציפינו לה
+  transaction act_trans; // החבילה שקיבלנו בפועל
+  
+  int pass_cnt = 0;      // מונה הצלחות
+  int fail_cnt = 0;      // מונה כשלונות
+
+  function new(mailbox mon2scb, mailbox gen2scb);
+    this.mon2scb = mon2scb;
+    this.gen2scb = gen2scb;
+  endfunction
+
+  task main();
+    forever begin
+      // שליפת הנתונים משני המקורות
+      gen2scb.get(exp_trans);
+      mon2scb.get(act_trans);
+
+      // השוואה בין הנתונים
+      if (exp_trans.data_in == act_trans.data_in) begin
+        $display("[Scoreboard] PASS! Expected: 0x%h, Actual: 0x%h", exp_trans.data_in, act_trans.data_in);
+        pass_cnt++;
+      end else begin
+        $error("[Scoreboard] FAIL! Expected: 0x%h, Actual: 0x%h", exp_trans.data_in, act_trans.data_in);
+        fail_cnt++;
+      end
+    end
+  endtask
+endclass
+
+class environment;
+  generator  gen;
+  driver     drv;
+  monitor    mon;
+  scoreboard scb;
+
+  // תיבות דואר (Mailboxes) לקישור בין הרכיבים
+  mailbox gen2drv;
+  mailbox mon2scb;
+  mailbox gen2scb; // צינור נוסף מהגנרטור לסקורבורד בשביל ההשוואה
+
+  virtual req_ack_if vif;
+
+  function new(virtual req_ack_if vif);
+    this.vif = vif;
+    
+    // יצירת התיבות
+    gen2drv = new();
+    mon2scb = new();
+    gen2scb = new();
+
+    // בניית הרכיבים
+    gen = new(gen2drv, gen2scb); // נעדכן את הגנרטור שישלח גם לסקורבורד
+    drv = new(gen2drv, vif);
+    mon = new(mon2scb, vif);
+    scb = new(mon2scb, gen2scb);
+  endfunction
+
+  task test();
+    // הרצת כל הרכיבים במקביל
+    fork
+      gen.main();
+      drv.main();
+      mon.main();
+      scb.main();
+    join_any // מסיימים כשהגנרטור מסיים את 32 הטרנזקציות
+  endtask
+
+  task post_test();
+    $display("---------------------------------------");
+    $display("Test Finished! Passes: %0d, Fails: %0d", scb.pass_cnt, scb.fail_cnt);
+    $display("---------------------------------------");
+  endtask
+endclass
+
+module tb_top;
+  bit clk;
+  bit reset_n;
+
+  // יצירת שעון
+  always #5 clk = ~clk;
+
+  // אינטרפייס
+  req_ack_if vif(clk);
+  
+  // הדיזיין (DUT)
+  req_ack_with_mem dut (
+    .clk(vif.clk),
+    .reset_n(vif.reset_n),
+    .req(vif.req),
+    .data_in(vif.data_in),
+    .ack(vif.ack),
+    .internal_reg(vif.internal_reg),
+    .wr_ptr(vif.wr_ptr)
+  );
+
+  environment env;
+
+  initial begin
+    reset_n = 0;
+    vif.reset_n = 0;
+    #20 reset_n = 1;
+    vif.reset_n = 1;
+
+    env = new(vif);
+    env.test();
+    env.post_test();
+    $finish;
+  end
+endmodule
       
       
