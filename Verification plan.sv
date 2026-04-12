@@ -62,6 +62,20 @@ class driver
   endtask 
 endclass 
 
+class monitor 
+transaction trans; // object 
+mailbox mon2scb; // getting the data from the transaction 
+virtual req_ack_if vif; // connecting to the interface 
+
+function new (mailbox mon2scb, virtual req_ack_if vif);
+this.mon2scb = mon2scb;
+this.vif = vif;
+endfunction 
+
+task main (); 
+  forever begin
+    mon2scb.get(trans);
+    
 
       
 
