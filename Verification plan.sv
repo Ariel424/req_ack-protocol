@@ -17,3 +17,31 @@ endfunction
     $display("[%s] Time: %0t | Data: 0x%h | Delay: %0d", name, $time, data_in, delay);
   endfunction
 endclass
+
+class generator;
+  transaction trans;
+  mailbox gen2drv; // ה"צינור" שמעביר את המידע לדרייבר
+
+  function new(mailbox gen2drv);
+    this.gen2drv = gen2drv;
+  endfunction
+
+  task main();
+    repeat(32) begin // לופ שממלא את כל הזיכרון שלך
+      trans = new();
+      if (!trans.randomize()) $fatal("Randomization failed");
+      gen2drv.put(trans); // שולח את החבילה לדרייבר
+      trans.display("Generator");
+    end
+  endtask
+endclass
+
+class driver
+  transaction trans;
+  mailbox gen2drv;
+  virtual req_ack_if vif;
+
+  
+  function new(mailbox gen2drv);
+    this.gen2drv = gen2drv;
+  endfunction
