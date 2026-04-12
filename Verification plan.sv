@@ -37,11 +37,35 @@ class generator;
 endclass
 
 class driver
-  transaction trans;
-  mailbox gen2drv;
-  virtual req_ack_if vif;
+  transaction trans; // object 
+  mailbox gen2drv; // getting the data from the transaction 
+  virtual req_ack_if vif; // connecting to the interface 
 
-  
-  function new(mailbox gen2drv);
+  function new (mailbox gen2drv, virtual req_ack_if vif); 
     this.gen2drv = gen2drv;
+    this.vif = vif;
   endfunction
+
+  task main (); 
+    forever begin 
+      gen2drv.get(trans);
+      $display ("[Driver] Received Transaction: Data = 0x%h", trans.data_in);
+      @(posedge vif.clk); // waiting for one clock 
+      vif.data_in <= trans.data_in; // השמת הדאטה בקו
+      vif.req <= 1'b1; // הרמת בקשה
+      wait (vif.ack == 1'b1);
+      @(posedge vif.clk); // waiting for another clocking 
+      vif.req <= 1'b0; 
+      wait (vif.ack == 1'b0);
+      $display ("Driver]: Transaction Finished successfully");
+    end
+  endtask 
+endclass 
+
+
+      
+
+      
+
+      
+      
