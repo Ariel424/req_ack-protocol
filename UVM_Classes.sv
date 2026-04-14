@@ -38,4 +38,25 @@ class my_driver extends uvm_driver #(my_transaction);
   endtask 
 endclass 
 
+class my_sequence extends uvm_sequence #(my_transaction);
+  `uvm_component_utils (my_sequence);
+
+  rand bit [31:0] data;
+  rand int delay;
+
+  constraint delay_c {delay inside {[1:10]}; }
+
+  function new (string name = " ");
+    super.new(name); 
+  endfunction 
+endclass 
+
+class my_sequencer extends uvm_sequencer #(my_transaction);  
+  `uvm_component_utils (my_sequencer)
+
+  function new (string name, uvm_component parent);
+    super.new (name, parent);
+  endfunction 
+endclass 
+    
     
