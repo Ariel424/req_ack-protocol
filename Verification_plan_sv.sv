@@ -18,7 +18,7 @@ endproperty
 
 Property p_req_persistence; 
 @(posedge clk) disable iff (!reset_n || !assertions_en)
-(req && !ack) | => req;
+(req && !ack) |=> req until_with ack;
 endproperty
 
 // Assertion Directives 
