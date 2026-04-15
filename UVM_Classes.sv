@@ -4,12 +4,14 @@
 class my_transaction extends uvm_sequence_item;
   `uvm_object_utils(my_transaction)
 
-  rand bit [31:0] data;
+  rand bit [7:0] data;
   rand int delay;
 
   constraint delay_c { delay inside {[1:10]}; }
 
-  function new(string name = ""); super.new(name); endfunction
+  function new(string name = "my_transaction");
+  super.new(name); 
+  endfunction
 endclass
 
 // -------------------------------------------------------------------------
@@ -18,7 +20,9 @@ endclass
 class my_base_sequence extends uvm_sequence #(my_transaction);
   `uvm_object_utils(my_base_sequence)
 
-  function new(string name = "my_base_sequence"); super.new(name); endfunction
+  function new (string name = "my_base_sequence");
+  super.new(name); 
+  endfunction
 
   virtual task body();
     repeat(10) begin
