@@ -85,6 +85,10 @@ endclass
 // Sequence
 class my_base_sequence extends uvm_sequence #(my_transaction);
   `uvm_object_utils(my_base_sequence)
+
+  function new(string name = "my_base_sequence");
+    super.new(name);
+  endfunction
   
   virtual task body();
     repeat(10) begin
