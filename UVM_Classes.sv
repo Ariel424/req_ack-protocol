@@ -15,11 +15,6 @@ endclass
 // -------------------------------------------------------------------------
 // 2. Sequence & Sequencer: המוח והמרכזייה
 // -------------------------------------------------------------------------
-class my_sequencer extends uvm_sequencer #(my_transaction);
-  `uvm_component_utils(my_sequencer)
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
-endclass
-
 class my_base_sequence extends uvm_sequence #(my_transaction);
   `uvm_object_utils(my_base_sequence)
 
@@ -33,6 +28,11 @@ class my_base_sequence extends uvm_sequence #(my_transaction);
       finish_item(req);
     end
   endtask
+endclass
+
+class my_sequencer extends uvm_sequencer #(my_transaction);
+  `uvm_component_utils(my_sequencer)
+  function new(string name, uvm_component parent); super.new(name, parent); endfunction
 endclass
 
 // -------------------------------------------------------------------------
