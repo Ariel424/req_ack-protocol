@@ -1,13 +1,15 @@
 class my_transaction extends uvm_sequence_item;
   `uvm_object_utils(my_transaction)
 
-  rand bit [31:0] data;
+  rand bit [7:0] data;
   rand int delay; // משתנה לשליטה בתזמון בין בקשות
 
   // אילוץ: הדיליי יהיה בין 1 ל-10 מחזורי שעון
   constraint delay_c { delay inside {[1:10]}; }
 
-  function new(string name = ""); super.new(name); endfunction
+  function new(string name = "");
+    super.new(name);
+  endfunction
 endclass
 
 class my_driver extends uvm_driver #(my_transaction);
