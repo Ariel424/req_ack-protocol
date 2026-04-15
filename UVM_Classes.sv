@@ -47,7 +47,9 @@ class my_driver extends uvm_driver #(my_transaction);
   virtual my_interface vif;
   uvm_analysis_port #(my_transaction) drv_ap; // לשליחת הציפייה לסקורבורד
 
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+  function new(string name, uvm_component parent);
+  super.new(name, parent);
+  endfunction
 
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
