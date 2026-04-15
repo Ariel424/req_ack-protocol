@@ -24,7 +24,7 @@ class my_driver extends uvm_driver #(my_transaction);
     vif.req <= 0;
 
     repeat (5) @(posedge vif.clk);
-    vif.reset_m <=1;
+    vif.reset_n <=1;
   endtask 
 
   virtual task driver_tem (my_transaction tr)
