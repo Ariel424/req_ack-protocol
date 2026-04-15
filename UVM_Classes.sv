@@ -114,7 +114,7 @@ class my_scoreboard extends uvm_scoreboard;
   endfunction
 endclass
 
-        class my_agent extends uvm_agent;
+class my_agent extends uvm_agent;
   `uvm_component_utils(my_agent)
   my_driver drv;
   my_monitor mon;
