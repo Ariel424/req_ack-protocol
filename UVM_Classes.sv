@@ -91,7 +91,9 @@ class my_monitor extends uvm_monitor;
   virtual my_interface vif;
   uvm_analysis_port #(my_transaction) mon_ap;
 
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+  function new(string name, uvm_component parent);
+  super.new(name, parent);
+  endfunction
 
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
