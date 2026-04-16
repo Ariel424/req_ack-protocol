@@ -73,7 +73,7 @@ class my_driver extends uvm_driver #(my_transaction);
     end
   endtask
 
-  task drive_item(my_transaction tr);
+  virtual task drive_item(my_transaction tr);
     @(posedge vif.clk);
     vif.req  <= 1;
     vif.data <= tr.data;
