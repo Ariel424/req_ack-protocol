@@ -28,7 +28,7 @@ class my_base_sequence extends uvm_sequence #(my_transaction);
     repeat(10) begin
       req = my_transaction::type_id::create("req");
       start_item(req);
-      if (!req.randomize()) `uvm_error("SEQ", "Randomization failed!")
+      if (!req.randomize()) `uvm_fatal("SEQ", "Randomization failed!")
       finish_item(req);
     end
   endtask
