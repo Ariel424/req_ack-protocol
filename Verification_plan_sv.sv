@@ -58,19 +58,24 @@ endclass
 class generator;
   transaction trans;
   mailbox gen2drv;
+  event get_done;
+  int count = 32;
 
-  function new(mailbox gen2drv, transaction trans);
+  function new(mailbox gen2drv, transaction trans, event get_done);
     this.gen2drv = gen2drv;
     this.trans = trans;
+    this.get_done = get_done;
   endfunction
 
   task main();
-    repeat(32) begin // לופ שממלא את כל הזיכרון שלך
+    repeat(count) begin // לופ שממלא את כל הזיכרון שלך
       trans = new();
       if (!trans.randomize()) $fatal("Randomization failed");
       gen2drv.put(trans); // שולח את החבילה לדרייבר
       trans.display("Generator");
     end
+    -> get_done;
+    $display("[Generator] Finished generating %0d items", count);
   endtask
 endclass
 
