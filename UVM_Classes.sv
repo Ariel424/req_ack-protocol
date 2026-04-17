@@ -46,6 +46,7 @@ endclass
 // -------------------------------------------------------------------------
 class my_driver extends uvm_driver #(my_transaction);
   `uvm_component_utils(my_driver)
+  
   virtual my_interface vif;
   uvm_analysis_port #(my_transaction) drv_ap; // לשליחת הציפייה לסקורבורד
 
@@ -93,7 +94,8 @@ virtual task drive_item(my_transaction tr);
 
     repeat(tr.delay) @(posedge vif.clk);
     vif.req  <= 0;
-endtask
+  endtask
+endclass 
 
 // -------------------------------------------------------------------------
 // 4. Monitor: הצופה הפסיבי
