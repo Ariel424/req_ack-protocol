@@ -75,15 +75,25 @@ class my_driver extends uvm_driver #(my_transaction);
     end
   endtask
 
-  virtual task drive_item(my_transaction tr);
+virtual task drive_item(my_transaction tr);
     @(posedge vif.clk);
     vif.req  <= 1;
     vif.data <= tr.data;
-    wait(vif.ack == 1);
+
+    fork
+        begin: wait_for_ack
+            wait(vif.ack == 1);
+        end
+        begin: timeout_watchdog
+            repeat(100) @(posedge vif.clk); // מחכים מקסימום 100 שעונים
+            `uvm_error("DRV_TIMEOUT", "DUT failed to respond with ACK within 100 cycles!")
+        end
+    join_any
+    disable fork; // עוצר את התהליך שעדיין רץ (או ה-wait או ה-timeout)
+
     repeat(tr.delay) @(posedge vif.clk);
     vif.req  <= 0;
-  endtask
-endclass
+endtask
 
 // -------------------------------------------------------------------------
 // 4. Monitor: הצופה הפסיבי
