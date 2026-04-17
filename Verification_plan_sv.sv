@@ -57,10 +57,11 @@ endclass
 
 class generator;
   transaction trans;
-  mailbox gen2drv; // ה"צינור" שמעביר את המידע לדרייבר
+  mailbox gen2drv;
 
-  function new(mailbox gen2drv);
+  function new(mailbox gen2drv, transaction trans);
     this.gen2drv = gen2drv;
+    this.trans = trans;
   endfunction
 
   task main();
