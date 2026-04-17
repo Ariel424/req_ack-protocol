@@ -1,18 +1,30 @@
 // -------------------------------------------------------------------------
 // 1. Transaction: האובייקט שעובר במערכת
 // -------------------------------------------------------------------------
-class my_transaction extends uvm_sequence_item;
-  `uvm_object_utils(my_transaction)
+class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
+  
+  `uvm_object_param_utils(my_transaction#(WIDTH))
 
-  rand bit [7:0] data;
+  rand bit [WIDTH-1:0] data;
   rand int delay;
+  int last_delay; 
+  
+  constraint c_delay { delay inside {[1:10]}; }
 
-  constraint delay_c { delay inside {[1:10]}; }
-  constraint data_range_c { data inside {[8'h00 : 8'hFA]}; }
-  // constraint no_invalid_data_c { !(data inside {8'h00, 8'hFF}); }
+  function new (string name = "my_transaction");
+    super.new(name);
+  endfunction
 
-  function new(string name = "my_transaction");
-  super.new(name); 
+  virtual function void do_copy(uvm_object rhs);
+    my_transaction#(WIDTH) rhs_;
+    if (!$cast(rhs_, rhs)) begin
+      `uvm_error("do_copy", "Cast failed")
+      return;
+    end
+    
+    super.do_copy(rhs); 
+    this.data = rhs_.data;
+    this.delay = rhs_.delay;
   endfunction
 endclass
 
