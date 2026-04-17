@@ -106,7 +106,7 @@ class my_monitor extends uvm_monitor;
   uvm_analysis_port #(my_transaction) mon_ap;
 
   function new(string name, uvm_component parent);
-  super.new(name, parent);
+    super.new(name, parent);
   endfunction
 
   virtual function void build_phase(uvm_phase phase);
@@ -117,15 +117,21 @@ class my_monitor extends uvm_monitor;
   endfunction
 
   virtual task run_phase(uvm_phase phase);
-    forever @(posedge vif.clk) begin
-      if (vif.reset_n && vif.req && vif.ack) begin
+    // לולאה אינסופית שדוגמת את הסיגנלים בכל שינוי רלוונטי
+    forever @(posedge vif.clk or negedge vif.reset_n) begin
+      if (!vif.reset_n) begin
+        `uvm_info("MON", "Reset detected, clearing monitor state", UVM_HIGH)
+      end     
+      else if (vif.req && vif.ack) begin
         my_transaction tr = my_transaction::type_id::create("tr");
         tr.data = vif.data;
         mon_ap.write(tr);
+        `uvm_info("MON", $sformatf("Sampled Data: %0h", tr.data), UVM_MEDIUM)
       end
     end
   endtask
 endclass
+מה השתנה ולמה זה חשוב?
 
 // -------------------------------------------------------------------------
 // 5. Scoreboard: השופט (משתמש ב-Decl Macros להפרדת כניסות)
