@@ -8,6 +8,8 @@ class my_transaction extends uvm_sequence_item;
   rand int delay;
 
   constraint delay_c { delay inside {[1:10]}; }
+  constraint data_range_c { data inside {[8'h00 : 8'hFA]}; }
+  // constraint no_invalid_data_c { !(data inside {8'h00, 8'hFF}); }
 
   function new(string name = "my_transaction");
   super.new(name); 
@@ -131,8 +133,7 @@ class my_monitor extends uvm_monitor;
     end
   endtask
 endclass
-מה השתנה ולמה זה חשוב?
-
+      
 // -------------------------------------------------------------------------
 // 5. Scoreboard: השופט (משתמש ב-Decl Macros להפרדת כניסות)
 // -------------------------------------------------------------------------
