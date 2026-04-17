@@ -56,7 +56,6 @@ endfunction
 endclass
 
 class generator;
-  transaction trans;
   mailbox gen2drv;
   event get_done;
   int count = 32;
