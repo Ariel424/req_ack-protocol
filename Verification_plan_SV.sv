@@ -100,30 +100,6 @@ class my_monitor;
     end
   endtask
 endclass
-          
-class monitor;
-  transaction trans;
-  mailbox mon2scb;      // הצינור ל-Scoreboard
-  virtual req_ack_if vif;
-
-  function new(mailbox mon2scb, virtual req_ack_if vif);
-    this.mon2scb = mon2scb;
-    this.vif = vif;
-  endfunction
-
-  task main();
-    forever begin
-      @(posedge vif.clk);
-      if (vif.ack == 1'b1) begin
-        trans = new();
-        trans.data_in = vif.internal_reg; 
-        mon2scb.put(trans);
-        $display("[Monitor] Detected Transaction: Data = 0x%h, Write Ptr = %0d", vif.internal_reg, vif.wr_ptr);        
-        wait(vif.ack == 1'b0);
-      end
-    end
-  endtask
-endclass
 
   class my_scoreboard;
   mailbox #(my_transaction) drv2sb;
