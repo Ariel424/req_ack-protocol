@@ -133,7 +133,6 @@ class my_monitor extends uvm_monitor;
   endfunction
 
   virtual task run_phase(uvm_phase phase);
-    // לולאה אינסופית שדוגמת את הסיגנלים בכל שינוי רלוונטי
     forever @(posedge vif.clk or negedge vif.reset_n) begin
       if (!vif.reset_n) begin
         `uvm_info("MON", "Reset detected, clearing monitor state", UVM_HIGH)
