@@ -32,7 +32,7 @@ class generator;
       if (!tr.randomize()) $fatal("Gen randomization failed");
       gen2drv.put(tr);
     end
-    ->done;
+    -> done;
   endtask
 endclass
 
