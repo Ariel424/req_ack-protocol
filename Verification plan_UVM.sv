@@ -7,9 +7,9 @@ class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
 
   rand bit [WIDTH-1:0] data;
   rand int delay;
-  int last_delay; 
-  
+
   constraint c_delay { delay inside {[1:10]}; }
+  constraint c_data { data inside {[h'00 : h'FF]; }
 
   function new (string name = "my_transaction");
     super.new(name);
