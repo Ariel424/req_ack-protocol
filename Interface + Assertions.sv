@@ -1,14 +1,9 @@
-interface my_intercace (input Logic clk); 
+interface my_intercafe (input Logic clk); 
 
 logic reset_n; // A-Sychronic reset, active low 
 logic req; // active high 
 logic ack; // active high 
 logic [7:0] data; // 2^8 = 0-255 
-
-interface my_interface(input logic clk);
-  logic req, ack;
-  logic [31:0] data;
-  logic reset_n;
 
   // Clocking Block - Preponed Region
   clocking mon_cb @(posedge clk);
