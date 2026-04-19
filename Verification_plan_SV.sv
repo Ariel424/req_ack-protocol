@@ -100,6 +100,7 @@ class my_monitor;
     end
   endtask
 endclass
+          
 class monitor;
   transaction trans;
   mailbox mon2scb;      // הצינור ל-Scoreboard
