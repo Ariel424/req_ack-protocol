@@ -5,23 +5,8 @@ logic req; // active high
 logic ack; // active high 
 logic [7:0] data; // 2^8 = 0-255 
 
-  // Clocking Block - Preponed Region
-  clocking mon_cb @(posedge clk);
-    default input #1step; 
-    input req, ack, data, reset_n;
-  endclocking
-
-  // Clocking Block - Hold violations
-  clocking drv_cb @(posedge clk);
-    default input #1step output #1ns;
-    output req, data;
-    input  ack, reset_n;
-  endclocking
-
-  // Modports 
-  modport MONITOR (clocking mon_cb);
-  modport DRIVER  (clocking drv_cb);
-endinterface
+modport MONITOR_MP (clocking mon_cb, input reset_n);
+modport DRIVER_MP  (clocking drv_cb, input reset_n);
   
 endinterface 
 
