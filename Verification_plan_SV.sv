@@ -91,8 +91,11 @@ class my_monitor;
   endfunction
 
   task main();
-    forever @(posedge vif.clk) begin
-      if (vif.reset_n && vif.req && vif.ack) begin
+      forever @(posedge vif.clk or negedge vif.reset_n) begin
+            if (!vif.reset_n) begin
+                $display ("MON", "Reset detected, clearing monitor state")
+      end     
+     else if (vif.reset_n && vif.req && vif.ack) begin
         my_transaction tr = new();
         tr.data = vif.data;
         mon2sb.put(tr);
