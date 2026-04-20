@@ -6,10 +6,12 @@ rand int delay; // paramer for delay;
 constraint data_c {data_in inside {[8'h00 : 8'hFF]}; }
 constraint delay_c {delay inside {[1 : 10]}; } 
 
-function transaction copy();
-copy = new(); // memory access 
-copy.data_in = this.data_in;
-copy.delay = this.delay 
+function my_transaction copy(); 
+my_transaction tr; 
+tmp = new(); 
+this.data = data; 
+this.delay = delay;
+return tr;
 endfunction 
 
 function void display(string name);
