@@ -1,15 +1,35 @@
-interface my_intercafe (input Logic clk); 
+interface my_interface (input Logic clk); 
 
 logic reset_n; // A-Sychronic reset, active low 
 logic req; // active high 
 logic ack; // active high 
-logic [7:0] data; // 2^8 = 0-255 
-
-modport MONITOR_MP (clocking mon_cb, input reset_n);
-modport DRIVER_MP  (clocking drv_cb, input reset_n);
+logic [7:0] data; // 2^8 = 0-255
   
-endinterface 
+interface my_intercafe (input logic clk); 
 
+  logic reset_n; 
+  logic req;     
+  logic ack;     
+  logic [7:0] data; 
+
+  clocking drv_cb @(posedge clk);
+    default input #1ns output #1ns; 
+    output req;
+    output data;
+    input  ack;
+  endclocking
+
+  clocking mon_cb @(posedge clk);
+    default input #1ns;
+    input req;
+    input data;
+    input ack;
+  endclocking
+
+  modport MONITOR_MP (clocking mon_cb, input reset_n);
+  modport DRIVER_MP  (clocking drv_cb, input reset_n);
+
+endinterface
 property p_data_stability
 @(posedge clk) disable iff (!reset_n || !assertions_en) // after clk, disable reset only if
 (req && !ack) |=> $stable(data) throughout (ack [->1]);
