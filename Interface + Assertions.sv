@@ -4,13 +4,6 @@ logic reset_n; // A-Sychronic reset, active low
 logic req; // active high 
 logic ack; // active high 
 logic [7:0] data; // 2^8 = 0-255
-  
-interface my_intercafe (input logic clk); 
-
-  logic reset_n; 
-  logic req;     
-  logic ack;     
-  logic [7:0] data; 
 
   clocking drv_cb @(posedge clk);
     default input #1ns output #1ns; 
