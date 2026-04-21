@@ -1,4 +1,5 @@
 class my_transaction;
+  
   rand logic [7:0] data_in;
   rand int delay;
 
