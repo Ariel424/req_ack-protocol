@@ -162,6 +162,10 @@ class my_scoreboard extends uvm_scoreboard;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
+  endfunction
+
+  function void build_phase (uvm_phase phase)
+    super.build_phase (phase)
     exp_imp = new("exp_imp", this);
     act_imp = new("act_imp", this);
   endfunction
