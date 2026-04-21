@@ -160,10 +160,11 @@ endclass
 
 // --- Environment ---
 class environment;
-  generator     gen;
+  generator      gen;
   my_driver      drv;
   my_monitor     mon;
   my_scoreboard  scb;
+  my_coverage    cov; // הוספת מחלקת הקוברג'
 
   mailbox #(my_transaction) gen2drv;
   mailbox #(my_transaction) drv2sb;
@@ -181,6 +182,7 @@ class environment;
     drv = new(vif.DRIVER_MP,  gen2drv, drv2sb);
     mon = new(vif.MONITOR_MP, mon2sb);
     scb = new(drv2sb, mon2sb);
+    cov = new(); 
   endfunction
 
   task test();
@@ -188,17 +190,23 @@ class environment;
       drv.main();
       mon.main();
       scb.main();
+      
+      forever begin
+        my_transaction tr;
+        mon2sb.peek(tr); 
+        cov.sample(tr);
+        @(vif.MONITOR_MP.mon_cb); 
+      end
     join_none
 
-    drv.reset(); // קריאה לריסט המסודר
-    gen.main();  // הרצת הטסט
+    drv.reset();
+    gen.main();
 
     wait(gen.done);
-    repeat(50) @(vif.DRIVER_MP.drv_cb); // Drain time
+    repeat(50) @(vif.DRIVER_MP.drv_cb);
     
-    $display("---------------------------------------");
+    $display("Coverage: %0.2f%%", cov.cg.get_inst_coverage());
     $display("Final Result: PASS=%0d, FAIL=%0d", scb.pass_cnt, scb.fail_cnt);
-    $display("---------------------------------------");
   endtask
 endclass
 
@@ -224,3 +232,79 @@ module tb_top;
     $finish;
   end
 endmodule
+
+        class my_coverage;
+  my_transaction tr;
+
+  // הגדרת ה-Covergroup
+  covergroup cg;
+    option.per_instance = 1;
+
+    // דגימת נתוני הכניסה (Data In) - מחלקים ל-Bins (טווחים)
+    cp_data: coverpoint tr.data_in {
+      bins low    = {[8'h00 : 8'h3F]};
+      bins mid    = {[8'h40 : 8'hBF]};
+      bins high   = {[8'hC0 : 8'hFF]};
+      bins zero   = {8'h00};
+      bins max    = {8'hFF};
+    }
+
+    // דגימת השיהוי (Delay)
+    cp_delay: coverpoint tr.delay {
+      bins short  = {[1:3]};
+      bins med    = {[4:7]};
+      bins long   = {[8:10]};
+    }
+    
+    // Cross Coverage - האם בדקנו דאטה גבוה עם דיליי קצר?
+    cross_data_delay: cross cp_data, cp_delay;
+  endgroup
+
+  function new();
+    cg = new();
+  endfunction
+
+  // פונקציה שנקראת מה-Environment כדי לדגום
+  function void sample(my_transaction tr);
+    this.tr = tr;
+    cg.sample();
+  endfunction
+endclass
+
+class my_coverage;
+  my_transaction tr;
+
+  // הגדרת ה-Covergroup
+  covergroup cg;
+    option.per_instance = 1;
+
+    // דגימת נתוני הכניסה (Data In) - מחלקים ל-Bins (טווחים)
+    cp_data: coverpoint tr.data_in {
+      bins low    = {[8'h00 : 8'h3F]};
+      bins mid    = {[8'h40 : 8'hBF]};
+      bins high   = {[8'hC0 : 8'hFF]};
+      bins zero   = {8'h00};
+      bins max    = {8'hFF};
+    }
+
+    // דגימת השיהוי (Delay)
+    cp_delay: coverpoint tr.delay {
+      bins short  = {[1:3]};
+      bins med    = {[4:7]};
+      bins long   = {[8:10]};
+    }
+    
+    // Cross Coverage - האם בדקנו דאטה גבוה עם דיליי קצר?
+    cross_data_delay: cross cp_data, cp_delay;
+  endgroup
+
+  function new();
+    cg = new();
+  endfunction
+
+  // פונקציה שנקראת מה-Environment כדי לדגום
+  function void sample(my_transaction tr);
+    this.tr = tr;
+    cg.sample();
+  endfunction
+endclass
