@@ -131,18 +131,14 @@ class my_scoreboard;
 
   task main();
     fork
-      // תהליך איסוף ציפיות מהדרייבר
       forever begin
         my_transaction tr;
         drv2sb.get(tr);
         exp_queue.push_back(tr);
       end
-      // תהליך השוואה מול המוניטור
       forever begin
         my_transaction act, exp;
         mon2sb.get(act);
-        
-        // מוודאים שיש למה להשוות (מונע Race conditions)
         wait(exp_queue.size() > 0);
         exp = exp_queue.pop_front();
         
@@ -164,7 +160,7 @@ class environment;
   my_driver      drv;
   my_monitor     mon;
   my_scoreboard  scb;
-  my_coverage    cov; // הוספת מחלקת הקוברג'
+  my_coverage    cov; 
 
   mailbox #(my_transaction) gen2drv;
   mailbox #(my_transaction) drv2sb;
