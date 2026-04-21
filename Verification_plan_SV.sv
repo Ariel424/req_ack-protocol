@@ -1,5 +1,5 @@
+// --- Transaction Class ---
 class my_transaction;
-  
   rand logic [7:0] data_in;
   rand int delay;
 
@@ -13,12 +13,9 @@ class my_transaction;
     tr.delay   = this.delay;
     return tr;
   endfunction
-
-  function void display(string name);
-    $display("[%s] Time: %0t | Data: 0x%h | Delay: %0d", name, $time, data_in, delay);
-  endfunction
 endclass
 
+// --- Generator ---
 class generator;
   mailbox #(my_transaction) gen2drv;
   int repeat_count = 10;
@@ -32,13 +29,15 @@ class generator;
     repeat(repeat_count) begin
       my_transaction tr = new();
       if (!tr.randomize()) $fatal("Gen randomization failed");
-      gen2drv.put(tr.copy()); // שולחים עותק כדי למנוע דריסת נתונים
+      gen2drv.put(tr.copy()); 
     end
+    $display("[GEN] Generated %0d transactions", repeat_count);
     -> done;
   endtask
 endclass
 
- class my_driver;
+// --- Driver ---
+class my_driver;
   virtual my_interface.DRIVER_MP vif;
   mailbox #(my_transaction) gen2drv;
   mailbox #(my_transaction) drv2sb; 
@@ -49,47 +48,34 @@ endclass
     this.drv2sb = drv2sb;
   endfunction
 
-task reset();
-  bit timeout_reached = 0;
-
-  $display("[DRV] Waiting for reset to start...");
-
-  fork
-    begin
-      wait(vif.reset_n == 0); 
-      wait(vif.reset_n == 1); 
-    end
-
-    begin
-      repeat(1000) @(vif.drv_cb); 
-      timeout_reached = 1;
-    end
-  join_any
-
-  disable fork;
-
-  if (timeout_reached) begin
-    $fatal(1, "[DRV] FATAL ERROR: Reset Watchdog Timeout! reset_n is stuck at 0.");
-  end else begin
-    $display("[DRV] Reset completed successfully within time limits.");
-  end
-
-  vif.drv_cb.req <= 0;
-  vif.drv_cb.data <= 0;
-
-endtask
+  task reset();
+    $display("[DRV] Resetting DUT...");
+    fork
+      begin
+        wait(vif.reset_n == 0); 
+        wait(vif.reset_n == 1); 
+      end
+      begin
+        repeat(1000) @(vif.drv_cb);
+        $fatal(1, "[DRV] Reset Timeout!");
+      end
+    join_any
+    disable fork;
+    vif.drv_cb.req <= 0;
+    vif.drv_cb.data <= 0;
+  endtask
 
   task main();
     forever begin
       my_transaction tr;
       gen2drv.get(tr);
       
-      // סנכרון מול השעון דרך ה-clocking block
       @(vif.drv_cb);
       vif.drv_cb.req  <= 1;
       vif.drv_cb.data <= tr.data_in;
       
-      drv2sb.put(tr); // שליחה לסקורבורד לציפייה
+      // שולחים לסקורבורד ברגע שהתחלנו לטפל בטרנזקציה
+      drv2sb.put(tr); 
 
       fork
         begin: wait_ack
@@ -97,7 +83,7 @@ endtask
         end
         begin: timeout
           repeat(100) @(vif.drv_cb);
-          $error("TIMEOUT! No ACK");
+          $error("[DRV] TIMEOUT! No ACK from DUT");
         end
       join_any
       disable fork;
@@ -107,7 +93,8 @@ endtask
     end
   endtask
 endclass
-          
+
+// --- Monitor ---
 class my_monitor;
   virtual my_interface.MONITOR_MP vif;
   mailbox #(my_transaction) mon2sb;
@@ -120,8 +107,9 @@ class my_monitor;
   task main();
     forever begin
       @(vif.mon_cb);
+      // דוגמים רק כשיש Valid Handshake
       if (vif.mon_cb.req && vif.mon_cb.ack) begin
-        my_transaction tr = new();
+        my_transaction tr = new(); // יוצרים אובייקט רק כשצריך
         tr.data_in = vif.mon_cb.data;
         mon2sb.put(tr);
       end
@@ -129,7 +117,8 @@ class my_monitor;
   endtask
 endclass
 
-  class my_scoreboard;
+// --- Scoreboard ---
+class my_scoreboard;
   mailbox #(my_transaction) drv2sb;
   mailbox #(my_transaction) mon2sb;
   my_transaction exp_queue[$];
@@ -142,31 +131,36 @@ endclass
 
   task main();
     fork
+      // תהליך איסוף ציפיות מהדרייבר
       forever begin
         my_transaction tr;
         drv2sb.get(tr);
         exp_queue.push_back(tr);
       end
+      // תהליך השוואה מול המוניטור
       forever begin
         my_transaction act, exp;
         mon2sb.get(act);
-        if (exp_queue.size() > 0) begin
-          exp = exp_queue.pop_front();
-          if (act.data_in == exp.data_in) begin
-            $display("[SCB] MATCH! Data: %h", act.data_in);
-            pass_cnt++;
-          end else begin
-            $error("[SCB] MISMATCH! Exp: %h, Got: %h", exp.data_in, act.data_in);
-            fail_cnt++;
-          end
+        
+        // מוודאים שיש למה להשוות (מונע Race conditions)
+        wait(exp_queue.size() > 0);
+        exp = exp_queue.pop_front();
+        
+        if (act.data_in == exp.data_in) begin
+          $display("[SCB] MATCH! Data: %h", act.data_in);
+          pass_cnt++;
+        end else begin
+          $error("[SCB] MISMATCH! Exp: %h, Got: %h", exp.data_in, act.data_in);
+          fail_cnt++;
         end
       end
     join
   endtask
 endclass
 
+// --- Environment ---
 class environment;
-  generator      gen;
+  generator     gen;
   my_driver      drv;
   my_monitor     mon;
   my_scoreboard  scb;
@@ -189,37 +183,44 @@ class environment;
     scb = new(drv2sb, mon2sb);
   endfunction
 
-  module tb_top;
-  bit clk;
+  task test();
+    fork
+      drv.main();
+      mon.main();
+      scb.main();
+    join_none
 
+    drv.reset(); // קריאה לריסט המסודר
+    gen.main();  // הרצת הטסט
+
+    wait(gen.done);
+    repeat(50) @(vif.DRIVER_MP.drv_cb); // Drain time
+    
+    $display("---------------------------------------");
+    $display("Final Result: PASS=%0d, FAIL=%0d", scb.pass_cnt, scb.fail_cnt);
+    $display("---------------------------------------");
+  endtask
+endclass
+
+// --- Top Module ---
+module tb_top;
+  bit clk;
   always #5 clk = ~clk;
 
   my_interface intf(clk);
-
-  // חיבור לדיזיין (DUT)
-  req_ack_with_mem dut (
-    .clk(clk),
-    .reset_n(intf.reset_n),
-    .req(intf.req),
-    .data_in(intf.data),
-    .ack(intf.ack)
-    // שאר הסיגנלים של ה-DUT...
-  );
+  
+  // דוגמה לחיבור DUT (יש לוודא שמות פורטים תואמים)
+  // dut_top u_dut (.clk(clk), .reset_n(intf.reset_n), ...);
 
   environment env;
 
   initial begin
-    intf.reset_n = 0;
-    #20 intf.reset_n = 1;
+    intf.reset_n <= 0;
+    #20 intf.reset_n <= 1;
 
     env = new(intf);
+    env.test();
     
-    fork
-      env.test();
-    join_none
-
-    wait(env.gen.done);
-    env.post_test();
     $finish;
   end
 endmodule
