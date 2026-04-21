@@ -49,13 +49,35 @@ endclass
     this.drv2sb = drv2sb;
   endfunction
 
-  task reset();
-    vif.drv_cb.req  <= 0;
-    wait(!vif.reset_n);
-    $display("[DRV] Reset Started");
-    wait(vif.reset_n);
-    $display("[DRV] Reset Ended");
-  endtask
+task reset();
+  bit timeout_reached = 0;
+
+  $display("[DRV] Waiting for reset to start...");
+
+  fork
+    begin
+      wait(vif.reset_n == 0); 
+      wait(vif.reset_n == 1); 
+    end
+
+    begin
+      repeat(1000) @(vif.drv_cb); 
+      timeout_reached = 1;
+    end
+  join_any
+
+  disable fork;
+
+  if (timeout_reached) begin
+    $fatal(1, "[DRV] FATAL ERROR: Reset Watchdog Timeout! reset_n is stuck at 0.");
+  end else begin
+    $display("[DRV] Reset completed successfully within time limits.");
+  end
+
+  vif.drv_cb.req <= 0;
+  vif.drv_cb.data <= 0;
+
+endtask
 
   task main();
     forever begin
