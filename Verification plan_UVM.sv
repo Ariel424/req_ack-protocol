@@ -170,12 +170,10 @@ class my_scoreboard extends uvm_scoreboard;
     act_imp = new("act_imp", this);
   endfunction
 
-  // מגיע מהדרייבר
   function void write_exp(my_transaction tr);
     exp_queue.push_back(tr);
   endfunction
 
-  // מגיע מהמוניטור
   function void write_act(my_transaction tr);
     if(exp_queue.size() > 0) begin
       my_transaction exp = exp_queue.pop_front();
@@ -190,7 +188,7 @@ class my_scoreboard extends uvm_scoreboard;
 endclass
 
 // -------------------------------------------------------------------------
-// 6. Agent & Env: התשתית
+// 6. Agent & Env
 // -------------------------------------------------------------------------
 class my_agent extends uvm_agent;
   `uvm_component_utils(my_agent)
@@ -218,22 +216,25 @@ class my_env extends uvm_env;
   `uvm_component_utils(my_env)
   my_agent agent;
   my_scoreboard sb;
+  my_coverage_collector cov;
 
   function new(string name, uvm_component parent); super.new(name, parent); endfunction
 
   virtual function void build_phase(uvm_phase phase);
     agent = my_agent::type_id::create("agent", this);
     sb = my_scoreboard::type_id::create("sb", this);
+    cov = my_coverage_collector::type_id::create("cov", this);
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
-    agent.drv.drv_ap.connect(sb.exp_imp); // ציפיות מהדרייבר
-    agent.mon.mon_ap.connect(sb.act_imp); // תוצאות מהמוניטור
+    agent.drv.drv_ap.connect(sb.exp_imp); 
+    agent.mon.mon_ap.connect(sb.act_imp);
+    agent.mon.mon_ap.connect(cov.analysis_export);
   endfunction
 endclass
 
 // -------------------------------------------------------------------------
-// 7. Test: הניהול העליון
+// 7. Test 
 // -------------------------------------------------------------------------
 class my_test extends uvm_test;
   `uvm_component_utils(my_test)
@@ -252,4 +253,48 @@ class my_test extends uvm_test;
     #100ns; // זמן המתנה לעיבוד הטרנזקציות האחרונות
     phase.drop_objection(this);
   endtask
+endclass
+
+// -------------------------------------------------------------------------
+// 8. Coverage Collector
+// -------------------------------------------------------------------------
+class my_coverage_collector extends uvm_subscriber #(my_transaction);
+  `uvm_component_utils(my_coverage_collector)
+
+  my_transaction tr;
+  real coverage_score;
+
+  covergroup data_cg;
+    option.per_instance = 1;
+    option.comment = "Coverage for Data and Delay";
+
+    cp_data: coverpoint tr.data {
+      bins low    = {[0:h'3F]};
+      bins mid    = {[h'40:h'BF]};
+      bins high   = {[h'C0:h'FF]};
+    }
+
+    cp_delay: coverpoint tr.delay {
+      bins short  = {[1:3]};
+      bins medium = {[4:7]};
+      bins long   = {[8:10]};
+    }
+
+    cross_data_delay: cross cp_data, cp_delay;
+  endgroup
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    data_cg = new();
+  endfunction
+
+  virtual function void write(my_transaction t);
+    this.tr = t;
+    data_cg.sample();
+    coverage_score = data_cg.get_inst_coverage();
+  endfunction
+
+  virtual function void report_phase(uvm_phase phase);
+    `uvm_info("COV", $sformatf("Final Coverage Score: %0.2f%%", coverage_score), UVM_LOW)
+  endfunction
 endclass
