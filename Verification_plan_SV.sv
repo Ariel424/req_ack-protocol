@@ -35,7 +35,7 @@ class generator;
     -> done;
   endtask
 endclass
-
+  
 // --- Driver ---
 class my_driver;
   virtual my_interface.DRIVER_MP vif;
@@ -72,11 +72,8 @@ class my_driver;
       
       @(vif.drv_cb);
       vif.drv_cb.req  <= 1;
-      vif.drv_cb.data <= tr.data_in;
-      
-      // שולחים לסקורבורד ברגע שהתחלנו לטפל בטרנזקציה
+      vif.drv_cb.data <= tr.data_in; 
       drv2sb.put(tr); 
-
       fork
         begin: wait_ack
           wait(vif.drv_cb.ack == 1);
