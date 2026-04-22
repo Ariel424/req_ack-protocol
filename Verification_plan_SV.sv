@@ -51,11 +51,11 @@ class my_driver;
   task reset();
     $display("[DRV] Resetting DUT...");
     fork
-      begin
+      begin: wait_reset
         wait(vif.reset_n == 0); 
         wait(vif.reset_n == 1); 
       end
-      begin
+      begin: time_out_reset
         repeat(1000) @(vif.drv_cb);
         $fatal(1, "[DRV] Reset Timeout!");
       end
@@ -78,7 +78,7 @@ class my_driver;
         begin: wait_ack
           wait(vif.drv_cb.ack == 1);
         end
-        begin: timeout
+        begin: timeout_ack
           repeat(100) @(vif.drv_cb);
           $error("[DRV] TIMEOUT! No ACK from DUT");
         end
