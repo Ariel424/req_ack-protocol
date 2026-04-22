@@ -101,6 +101,15 @@ class my_monitor;
     this.mon2sb = mon2sb;
   endfunction
 
+  task reset();
+    $display("[MON] Waiting for Reset...");
+        wait(vif.reset_n == 0);
+    $display("[MON] Reset Detected. Clearing internal state...");    
+        wait(vif.reset_n == 1);
+    $display("[MON] Reset Released. Monitor is ready.");
+  endtask
+
+  
   task main();
     forever begin
       @(vif.mon_cb);
