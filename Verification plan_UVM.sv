@@ -2,7 +2,6 @@
 // 1. Transaction: האובייקט שעובר במערכת
 // -------------------------------------------------------------------------
 class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
-  
   `uvm_object_param_utils(my_transaction#(WIDTH))
 
   rand bit [WIDTH-1:0] data;
