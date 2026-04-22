@@ -74,7 +74,7 @@ class my_driver extends uvm_driver #(my_transaction);
     super.build_phase(phase);
     if(!uvm_config_db#(virtual my_interface)::get(this, "", "vif", vif))
       `uvm_fatal("DRV", "Could not get vif from config_db")
-    drv_ap = new("drv_ap", this);
+    drv_ap = uvm_analysis_port #(my_transaction)::type_id::create("drv_ap", this);
   endfunction
 
   virtual task run_phase(uvm_phase phase);
