@@ -217,10 +217,6 @@ module tb_top;
   always #5 clk = ~clk;
 
   my_interface intf(clk);
-  
-  // דוגמה לחיבור DUT (יש לוודא שמות פורטים תואמים)
-  // dut_top u_dut (.clk(clk), .reset_n(intf.reset_n), ...);
-
   environment env;
 
   initial begin
@@ -236,12 +232,9 @@ endmodule
 
  class my_coverage;
   my_transaction tr;
-
-  // הגדרת ה-Covergroup
   covergroup cg;
     option.per_instance = 1;
 
-    // דגימת נתוני הכניסה (Data In) - מחלקים ל-Bins (טווחים)
     cp_data: coverpoint tr.data_in {
       bins low    = {[8'h00 : 8'h3F]};
       bins mid    = {[8'h40 : 8'hBF]};
@@ -250,14 +243,12 @@ endmodule
       bins max    = {8'hFF};
     }
 
-    // דגימת השיהוי (Delay)
     cp_delay: coverpoint tr.delay {
       bins short  = {[1:3]};
       bins med    = {[4:7]};
       bins long   = {[8:10]};
     }
     
-    // Cross Coverage - האם בדקנו דאטה גבוה עם דיליי קצר?
     cross_data_delay: cross cp_data, cp_delay;
   endgroup
 
@@ -275,7 +266,6 @@ endclass
 class my_coverage;
   my_transaction tr;
 
-  // הגדרת ה-Covergroup
   covergroup cg;
     option.per_instance = 1;
 
@@ -288,14 +278,12 @@ class my_coverage;
       bins max    = {8'hFF};
     }
 
-    // דגימת השיהוי (Delay)
     cp_delay: coverpoint tr.delay {
       bins short  = {[1:3]};
       bins med    = {[4:7]};
       bins long   = {[8:10]};
     }
     
-    // Cross Coverage - האם בדקנו דאטה גבוה עם דיליי קצר?
     cross_data_delay: cross cp_data, cp_delay;
   endgroup
 
@@ -303,7 +291,6 @@ class my_coverage;
     cg = new();
   endfunction
 
-  // פונקציה שנקראת מה-Environment כדי לדגום
   function void sample(my_transaction tr);
     this.tr = tr;
     cg.sample();
