@@ -113,9 +113,8 @@ class my_monitor;
   task main();
     forever begin
       @(vif.mon_cb);
-      // דוגמים רק כשיש Valid Handshake
       if (vif.mon_cb.req && vif.mon_cb.ack) begin
-        my_transaction tr = new(); // יוצרים אובייקט רק כשצריך
+        my_transaction tr = new(); 
         tr.data_in = vif.mon_cb.data;
         mon2sb.put(tr);
       end
@@ -235,7 +234,7 @@ module tb_top;
   end
 endmodule
 
-        class my_coverage;
+ class my_coverage;
   my_transaction tr;
 
   // הגדרת ה-Covergroup
