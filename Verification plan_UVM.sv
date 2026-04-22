@@ -63,8 +63,8 @@ endclass
 class my_driver extends uvm_driver #(my_transaction);
   `uvm_component_utils(my_driver)
   
-  virtual my_interface vif;
-  uvm_analysis_port #(my_transaction) drv_ap; // לשליחת הציפייה לסקורבורד
+  virtual my_interface.DRIVER_MP vif;
+  uvm_analysis_port #(my_transaction) drv_ap; 
 
   function new(string name, uvm_component parent);
   super.new(name, parent);
@@ -79,10 +79,10 @@ class my_driver extends uvm_driver #(my_transaction);
 
   virtual task run_phase(uvm_phase phase);
     // Reset Sequence
-    vif.reset_n <= 0;
-    vif.req     <= 0;
-    repeat(5) @(posedge vif.clk);
-    vif.reset_n <= 1;
+    vif.drv_cb.reset_n <= 0;
+    vif.drv_cb.req     <= 0;
+    repeat(5) @(posedge vif.drv_cb);
+    vif.drv_cb.reset_n <= 1;
 
     forever begin
       seq_item_port.get_next_item(req);
@@ -129,7 +129,7 @@ class my_monitor extends uvm_monitor;
     super.build_phase(phase);
     if(!uvm_config_db#(virtual my_interface)::get(this, "", "vif", vif))
       `uvm_fatal("MON", "Could not get vif from config_db")
-    mon_ap = new("mon_ap", this);
+      mon_ap = uvm_analysis_port #(my_transaction)::type_id::create("mon_ap", this);
   endfunction
 
   virtual task run_phase(uvm_phase phase);
