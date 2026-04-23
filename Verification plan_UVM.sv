@@ -133,7 +133,7 @@ class my_monitor extends uvm_monitor;
 
   virtual task run_phase(uvm_phase phase);
     forever @(posedge vif.clk or negedge vif.reset_n) begin
-      if (vif.reset_n == 1) begin
+      if (vif.reset_n == 0) begin
         `uvm_info("MON", "Reset detected, clearing monitor state", UVM_HIGH)
       end     
       else if (vif.req && vif.ack) begin
