@@ -80,7 +80,7 @@ class my_driver extends uvm_driver #(my_transaction);
     // Reset Sequence
     vif.drv_cb.reset_n <= 0;
     vif.drv_cb.req     <= 0;
-    repeat(5) @(posedge vif.drv_cb);
+    repeat(5) @(vif.drv_cb);
     vif.drv_cb.reset_n <= 1;
 
     forever begin
@@ -92,16 +92,16 @@ class my_driver extends uvm_driver #(my_transaction);
   endtask
 
 virtual task drive_item(my_transaction tr);
-    @(posedge vif.clk);
+  @(vif.drv_cb);
     vif.req  <= 1;
     vif.data <= tr.data;
 
     fork
         begin: wait_for_ack
-            wait(vif.ack == 1);
+          wait(vif.ack === 1);
         end
         begin: timeout_watchdog
-            repeat(100) @(posedge vif.clk); // מחכים מקסימום 100 שעונים
+          repeat(100) @(vif.drv_cb); // מחכים מקסימום 100 שעונים
             `uvm_error("DRV_TIMEOUT", "DUT failed to respond with ACK within 100 cycles!")
         end
     join_any
