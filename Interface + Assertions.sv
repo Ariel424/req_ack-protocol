@@ -19,24 +19,24 @@ logic [7:0] data; // 2^8 = 0-255
     input ack;
   endclocking
 
-  modport MONITOR_MP (clocking drv_cb, input reset_n);
-  modport DRIVER_MP  (clocking mon_cb, input reset_n);
+  modport DRIVER_MP  (clocking drv_cb, input reset_n);
+  modport MONITOR_MP (clocking mom_cb, input reset_n);
 
 endinterface
     
 property p_data_stability
-@(posedge clk) disable iff (!reset_n || !assertions_en) // after clk, disable reset only if
-(req && !ack) |=> $stable(data) throughout (ack [->1]);
+@(mom_cb) disable iff (!reset_n || !assertions_en) // after clk, disable reset only if
+(mom_cb.req && !mom_cb.ack) |=> $stable(data) throughout (ack [->1]);
 endproperty 
 
 property p_no_spurious_ack;
-@(posedge clk) disable iff (!reset_n || !assertions_en) // after clk, disable this test only if reset is active
-$rose(ack) -> req;
+@(mom_cb) disable iff (!reset_n || !assertions_en) // after clk, disable this test only if reset is active
+$rose(mom_cb.ack) -> req;
 endproperty
 
 property p_req_persistence; 
-@(posedge clk) disable iff (!reset_n || !assertions_en)
-(req && !ack) |=> req until_with ack;
+@(mom_cb) disable iff (!reset_n || !assertions_en)
+(mom_cb.req && !mom_cb.ack) |=> req until_with ack;
 endproperty
 
 // Assertion Directives 
