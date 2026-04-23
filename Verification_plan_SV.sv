@@ -161,7 +161,7 @@ endclass
 
 // --- Environment ---
 class environment;
-  generator      gen;
+  my_generator      gen;
   my_driver      drv;
   my_monitor     mon;
   my_scoreboard  scb;
@@ -178,7 +178,6 @@ class environment;
     gen2drv = new();
     drv2sb  = new();
     mon2sb  = new();
-
     gen = new(gen2drv);
     drv = new(vif.DRIVER_MP,  gen2drv, drv2sb);
     mon = new(vif.MONITOR_MP, mon2sb);
