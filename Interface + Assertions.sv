@@ -19,10 +19,11 @@ logic [7:0] data; // 2^8 = 0-255
     input ack;
   endclocking
 
-  modport MONITOR_MP (clocking mon_cb, input reset_n);
-  modport DRIVER_MP  (clocking drv_cb, input reset_n);
+  modport MONITOR_MP (clocking drv_cb, input reset_n);
+  modport DRIVER_MP  (clocking mon_cb, input reset_n);
 
 endinterface
+    
 property p_data_stability
 @(posedge clk) disable iff (!reset_n || !assertions_en) // after clk, disable reset only if
 (req && !ack) |=> $stable(data) throughout (ack [->1]);
