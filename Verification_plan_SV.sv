@@ -220,7 +220,8 @@ module tb_top;
 
   initial begin
     intf.reset_n <= 0;
-    #20 intf.reset_n <= 1;
+    repeat(5) @(posedge intf.clk);
+    intf.reset_n <= 1;
 
     env = new(intf);
     env.test();
