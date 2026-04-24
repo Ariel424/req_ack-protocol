@@ -94,12 +94,12 @@ class my_driver extends uvm_driver #(my_transaction);
 
 virtual task drive_item(my_transaction tr);
   @(vif.drv_cb);
-    vif.req  <= 1;
-    vif.data <= tr.data;
+    vif.drv_cb.req  <= 1;
+    vif.drv_cb.data <= tr.data;
 
     fork
         begin: wait_for_ack
-          wait(vif.ack === 1);
+          wait(vif.drv_cb.ack === 1);
         end
         begin: timeout_watchdog
           repeat(100) @(vif.drv_cb); // מחכים מקסימום 100 שעונים
@@ -109,7 +109,7 @@ virtual task drive_item(my_transaction tr);
     disable fork; // עוצר את התהליך שעדיין רץ (או ה-wait או ה-timeout)
 
     repeat(tr.delay) @(posedge vif.clk);
-    vif.req  <= 0;
+    vif.drv_cb.req  <= 0;
   endtask
 endclass 
 
