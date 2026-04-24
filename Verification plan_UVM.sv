@@ -80,6 +80,7 @@ class my_driver extends uvm_driver #(my_transaction);
     // Reset Sequence
     vif.drv_cb.reset_n <= 0;
     vif.drv_cb.req     <= 0;
+    vif.drv_cb.data    <= 0 ;
     repeat(5) @(vif.drv_cb);
     vif.drv_cb.reset_n <= 1;
 
