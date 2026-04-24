@@ -138,7 +138,7 @@ class my_monitor extends uvm_monitor;
         `uvm_info("MON", "Reset detected, clearing monitor state", UVM_HIGH)
       end     
       else if (vif.mon_cb.req && vif.mon_cb.ack) begin
-        my_transaction tr = my_transaction::type_id::create("tr");
+        tr = my_transaction::type_id::create("tr");
         tr.data = vif.data;
         mon_ap.write(tr);
         `uvm_info("MON", $sformatf("Sampled Data: %0h", tr.data), UVM_MEDIUM)
