@@ -133,11 +133,11 @@ class my_monitor extends uvm_monitor;
   endfunction
 
   virtual task run_phase(uvm_phase phase);
-    forever @(posedge vif.clk or negedge vif.reset_n) begin
+    forever @(posedge vif.mon_cb or negedge vif.reset_n) begin
       if (vif.reset_n == 0) begin
         `uvm_info("MON", "Reset detected, clearing monitor state", UVM_HIGH)
       end     
-      else if (vif.req && vif.ack) begin
+      else if (vif.mon_cb.req && vif.mon_cb.ack) begin
         my_transaction tr = my_transaction::type_id::create("tr");
         tr.data = vif.data;
         mon_ap.write(tr);
