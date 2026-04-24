@@ -102,11 +102,13 @@ class my_monitor;
   endfunction
 
   task reset();
+    begin 
     $display("[MON] Waiting for Reset...");
     wait(vif.reset_n === 0);
     $display("[MON] Reset Detected. Clearing internal state...");    
     wait(vif.reset_n === 1);
     $display("[MON] Reset Released. Monitor is ready.");
+    end
   endtask
 
   
