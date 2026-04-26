@@ -72,8 +72,7 @@ class my_driver;
       
       @(vif.drv_cb);
       vif.drv_cb.req  <= 1;
-      vif.drv_cb.data <= tr.data_in; 
-      drv2sb.put(tr); 
+      vif.drv_cb.data <= tr.data_in;  
       fork
         begin: wait_ack
           wait(vif.drv_cb.ack == 1);
@@ -84,7 +83,7 @@ class my_driver;
         end
       join_any
       disable fork;
-
+      drv2sb.put(tr);
       repeat(tr.delay) @(vif.drv_cb);
       vif.drv_cb.req <= 0;
     end
