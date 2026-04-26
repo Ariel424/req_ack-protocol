@@ -139,7 +139,7 @@ class my_monitor extends uvm_monitor;
       end     
       else if (vif.mon_cb.req && vif.mon_cb.ack) begin
         tr = my_transaction::type_id::create("tr");
-        tr.data = vif.data;
+        tr.data = vif.mon_cb.data;
         mon_ap.write(tr);
         `uvm_info("MON", $sformatf("Sampled Data: %0h", tr.data), UVM_MEDIUM)
       end
