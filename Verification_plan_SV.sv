@@ -231,6 +231,7 @@ module tb_top;
   end
 endmodule
 
+// --- Coverage ---
 class my_coverage;
   my_transaction tr;
 
