@@ -99,22 +99,14 @@ class my_monitor;
     this.vif = vif;
     this.mon2sb = mon2sb;
   endfunction
-
-  task reset();
-    begin 
-    $display("[MON] Waiting for Reset...");
-    wait(vif.reset_n === 0);
-    $display("[MON] Reset Detected. Clearing internal state...");    
-    wait(vif.reset_n === 1);
-    $display("[MON] Reset Released. Monitor is ready.");
-    end
-  endtask
-
   
-  task main();
+  task run();
     forever begin
-      @(vif.mon_cb);
-      if (vif.mon_cb.req && vif.mon_cb.ack) begin
+      @(vif.mon_cb or negedge vif.reset_n) begin
+      if (vif.reset_n == 0) begin
+      $display("[MON] Reset Detected. Clearing internal state...");
+      end
+      else if (vif.mon_cb.req && vif.mon_cb.ack) begin
         my_transaction tr = new(); 
         tr.data_in = vif.mon_cb.data;
         mon2sb.put(tr);
