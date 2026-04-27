@@ -28,7 +28,7 @@ class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
 endclass
 
 // -------------------------------------------------------------------------
-// 2. Sequence & Sequencer: המוח והמרכזייה
+// Sequence 
 // -------------------------------------------------------------------------
 class my_base_sequence extends uvm_sequence #(my_transaction);
   `uvm_object_utils(my_base_sequence)
@@ -37,6 +37,11 @@ class my_base_sequence extends uvm_sequence #(my_transaction);
   super.new(name); 
   endfunction
 
+endclass 
+
+class my_normal_seq extends my_base_sequence;
+`uvm_object_utils(my_normal_seq)
+    
   virtual task body();
     if (starting_phase != null) starting_phase.raise_objection(this);
     repeat(10) begin
@@ -49,15 +54,99 @@ class my_base_sequence extends uvm_sequence #(my_transaction);
   endtask
 endclass
 
+class my_stress_seq extends my_base_sequence;
+  `uvm_object_utils(my_stress_seq)
+
+  virtual task body();
+    `uvm_info("SEQ", "Starting STRESS sequence: zero delays", UVM_LOW)
+    repeat(50) begin
+      req = my_transaction::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { delay == 0; }) begin
+        `uvm_fatal("SEQ", "Randomization failed!")
+      end
+      finish_item(req);
+    end
+  endtask
+endclass
+
+class my_stress_seq extends my_base_sequence;
+  `uvm_object_utils(my_stress_seq)
+
+virtual task body();
+    `uvm_info("SEQ", "Starting STRESS sequence: zero delays", UVM_LOW)
+    repeat(50) begin
+      req = my_transaction::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { delay == 0; }) begin
+        `uvm_fatal("SEQ", "Randomization failed!")
+      end
+      finish_item(req);
+    end
+  endtask
+endclass
+
+class my_corner_data_seq extends my_base_sequence;
+  `uvm_object_utils(my_corner_data_seq)
+
+  virtual task body();
+    `uvm_info("SEQ", "Starting CORNER DATA sequence", UVM_LOW)
+    repeat(20) begin
+      req = my_transaction::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { data inside {8'h00, 8'h01, 8'hFE, 8'hFF}; }) begin
+        `uvm_fatal("SEQ", "Randomization failed!")
+      end
+      finish_item(req);
+    end
+  endtask
+endclass
+                     
+class my_toggle_seq extends my_base_sequence;
+  `uvm_object_utils(my_toggle_seq)
+
+  virtual task body();
+    bit [7:0] current_val = 8'h55; 
+    repeat(10) begin
+      req = my_transaction::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { data == current_val; }) begin
+        `uvm_fatal("SEQ", "Randomization failed!")
+      end
+      finish_item(req);
+      current_val = ~current_val;
+    end
+  endtask
+endclass
+
+class my_idle_seq extends my_base_sequence;
+  `uvm_object_utils(my_idle_seq)
+
+  virtual task body();
+    repeat(5) begin
+      req = my_transaction::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { delay inside {[50:100]}; }) begin
+        `uvm_fatal("SEQ", "Randomization failed!")
+      end
+      finish_item(req);
+    end
+  endtask
+endclass                     
+
+// -------------------------------------------------------------------------
+// Sequencer
+// -------------------------------------------------------------------------                     
+
 class my_sequencer extends uvm_sequencer #(my_transaction);
   `uvm_component_utils(my_sequencer)
   function new(string name, uvm_component parent); 
   super.new(name, parent); 
   endfunction
 endclass
-
+                     
 // -------------------------------------------------------------------------
-// 3. Driver: המתרגם לחומרה (Active)
+// 3. Driver: 
 // -------------------------------------------------------------------------
 class my_driver extends uvm_driver #(my_transaction);
   `uvm_component_utils(my_driver)
