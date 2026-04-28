@@ -57,29 +57,15 @@ endclass
 class my_stress_seq extends my_base_sequence;
   `uvm_object_utils(my_stress_seq)
 
-  virtual task body();
-    `uvm_info("SEQ", "Starting STRESS sequence: zero delays", UVM_LOW)
-    repeat(50) begin
-      req = my_transaction::type_id::create("req");
-      start_item(req);
-      if (!req.randomize() with { delay == 0; }) begin
-        `uvm_fatal("SEQ", "Randomization failed!")
-      end
-      finish_item(req);
-    end
-  endtask
-endclass
-
-class my_stress_seq extends my_base_sequence;
-  `uvm_object_utils(my_stress_seq)
-
 virtual task body();
     `uvm_info("SEQ", "Starting STRESS sequence: zero delays", UVM_LOW)
+    if (starting_phase != null) starting_phase.raise_objection(this);
     repeat(50) begin
       req = my_transaction::type_id::create("req");
       start_item(req);
       if (!req.randomize() with { delay == 0; }) begin
         `uvm_fatal("SEQ", "Randomization failed!")
+      if(statring_phase != null) statring_phase.raise_objection(this);
       end
       finish_item(req);
     end
@@ -325,7 +311,7 @@ endclass
 // -------------------------------------------------------------------------
 // 7. Test 
 // -------------------------------------------------------------------------
-class my_test extends uvm_test;
+class my_base_test extends uvm_test;
   `uvm_component_utils(my_test)
   my_env env;
 
@@ -344,6 +330,50 @@ class my_test extends uvm_test;
   endtask
 endclass
 
+// -------------------------------------------------------------------------
+// 1. Stress Test 
+// -------------------------------------------------------------------------
+class my_stress_test extends my_base_test;
+  `uvm_component_utils(my_stress_test)
+
+  function new (string name, uvm_component parent); 
+  super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    set_type_override_by_type(my_base_sequence::get_type(), my_stress_seq::get_type());
+    super.build_phase(phase); 
+  endfunction
+endclass
+
+// -------------------------------------------------------------------------
+// 2. Toggle Test - החלפת ה-Base ב-Toggle
+// -------------------------------------------------------------------------
+class my_toggle_test extends my_base_test;
+  `uvm_component_utils(my_toggle_test)
+
+  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    set_type_override_by_type(my_base_sequence::get_type(), my_toggle_seq::get_type());
+    super.build_phase(phase);
+  endfunction
+endclass
+
+// -------------------------------------------------------------------------
+// 3. Corner Data Test
+// -------------------------------------------------------------------------
+class my_corner_test extends my_base_test;
+  `uvm_component_utils(my_corner_test)
+
+  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    set_type_override_by_type(my_base_sequence::get_type(), my_corner_data_seq::get_type());
+    super.build_phase(phase);
+  endfunction
+endclass
+      
 // -------------------------------------------------------------------------
 // 8. Coverage Collector
 // -------------------------------------------------------------------------
