@@ -152,40 +152,6 @@ class my_scoreboard;
   endtask
 endclass
 
-// --- Coverage ---
-class my_coverage;
-  my_transaction tr;
-
-  covergroup cg;
-    option.per_instance = 1;
-
-    cp_data: coverpoint tr.data_in {
-      bins low    = {[8'h00 : 8'h3F]};
-      bins mid    = {[8'h40 : 8'hBF]};
-      bins high   = {[8'hC0 : 8'hFF]};
-      bins zero   = {8'h00};
-      bins max    = {8'hFF};
-    }
-
-    cp_delay: coverpoint tr.delay {
-      bins short  = {[1:3]};
-      bins med    = {[4:7]};
-      bins long   = {[8:10]};
-    }
-    
-    cross_data_delay: cross cp_data, cp_delay;
-  endgroup
-
-  function new();
-    cg = new();
-  endfunction
-
-  function void sample(my_transaction tr);
-    this.tr = tr;
-    cg.sample();
-  endfunction
-endclass
-        
 // --- Environment ---
 class environment;
   my_generator      gen;
@@ -236,7 +202,41 @@ class environment;
     $display("Final Result: PASS=%0d, FAIL=%0d", scb.pass_cnt, scb.fail_cnt);
   endtask
 endclass
+      
+// --- Coverage ---
+class my_coverage;
+  my_transaction tr;
 
+  covergroup cg;
+    option.per_instance = 1;
+
+    cp_data: coverpoint tr.data_in {
+      bins low    = {[8'h00 : 8'h3F]};
+      bins mid    = {[8'h40 : 8'hBF]};
+      bins high   = {[8'hC0 : 8'hFF]};
+      bins zero   = {8'h00};
+      bins max    = {8'hFF};
+    }
+
+    cp_delay: coverpoint tr.delay {
+      bins short  = {[1:3]};
+      bins med    = {[4:7]};
+      bins long   = {[8:10]};
+    }
+    
+    cross_data_delay: cross cp_data, cp_delay;
+  endgroup
+
+  function new();
+    cg = new();
+  endfunction
+
+  function void sample(my_transaction tr);
+    this.tr = tr;
+    cg.sample();
+  endfunction
+endclass
+        
 // --- Top Module ---
 module tb_top;
   bit clk;
