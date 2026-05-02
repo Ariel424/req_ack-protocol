@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// 1. Transaction: האובייקט שעובר במערכת
+// 1. Transaction: 
 // -------------------------------------------------------------------------
 class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
   `uvm_object_param_utils(my_transaction#(WIDTH))
@@ -28,7 +28,7 @@ class my_transaction #(parameter WIDTH = 8) extends uvm_sequence_item;
 endclass
 
 // -------------------------------------------------------------------------
-// Sequence 
+// Sequence
 // -------------------------------------------------------------------------
 class my_base_sequence extends uvm_sequence #(my_transaction);
   `uvm_object_utils(my_base_sequence)
@@ -161,7 +161,7 @@ class my_driver extends uvm_driver #(my_transaction);
 
     forever begin
       seq_item_port.get_next_item(req);
-      drv_ap.write(req); // מדווח לסקורבורד מה הולך להישלח
+      drv_ap.write(req); 
       drive_item(req);
       seq_item_port.item_done();
     end
@@ -177,11 +177,11 @@ virtual task drive_item(my_transaction tr);
           wait(vif.drv_cb.ack === 1);
         end
         begin: timeout_watchdog
-          repeat(100) @(vif.drv_cb); // מחכים מקסימום 100 שעונים
+          repeat(100) @(vif.drv_cb);
             `uvm_error("DRV_TIMEOUT", "DUT failed to respond with ACK within 100 cycles!")
         end
     join_any
-    disable fork; // עוצר את התהליך שעדיין רץ (או ה-wait או ה-timeout)
+    disable fork; 
 
     repeat(tr.delay) @(posedge vif.clk);
     vif.drv_cb.req  <= 0;
@@ -315,7 +315,9 @@ class my_base_test extends uvm_test;
   `uvm_component_utils(my_test)
   my_env env;
 
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
 
   virtual function void build_phase(uvm_phase phase);
     env = my_env::type_id::create("env", this);
@@ -325,7 +327,7 @@ class my_base_test extends uvm_test;
     my_base_sequence seq = my_base_sequence::type_id::create("seq");
     phase.raise_objection(this);
     seq.start(env.agent.seqr);
-    #100ns; // זמן המתנה לעיבוד הטרנזקציות האחרונות
+    #100ns;
     phase.drop_objection(this);
   endtask
 endclass
@@ -347,12 +349,14 @@ class my_stress_test extends my_base_test;
 endclass
 
 // -------------------------------------------------------------------------
-// 2. Toggle Test - החלפת ה-Base ב-Toggle
+// 2. Toggle Test 
 // -------------------------------------------------------------------------
 class my_toggle_test extends my_base_test;
   `uvm_component_utils(my_toggle_test)
 
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+  function new (string name, uvm_component parent);
+    super.new (name, parent);
+  endfunction
 
   virtual function void build_phase(uvm_phase phase);
     set_type_override_by_type(my_base_sequence::get_type(), my_toggle_seq::get_type());
@@ -366,7 +370,9 @@ endclass
 class my_corner_test extends my_base_test;
   `uvm_component_utils(my_corner_test)
 
-  function new(string name, uvm_component parent); super.new(name, parent); endfunction
+  function new (string name, uvm_component parent);
+    super.new (name, parent);
+  endfunction
 
   virtual function void build_phase(uvm_phase phase);
     set_type_override_by_type(my_base_sequence::get_type(), my_corner_data_seq::get_type());
