@@ -1,4 +1,6 @@
-// --- Transaction Class ---
+// ============================================================================
+// TRANSACTION CLASS
+// ============================================================================
 class my_transaction;
   rand logic [7:0] data_in;
   rand int delay;
@@ -15,7 +17,9 @@ class my_transaction;
   endfunction
 endclass
 
-// --- Generator ---
+// ============================================================================
+// GENERATOR CLASS
+// ============================================================================
 class generator;
   mailbox #(my_transaction) gen2drv;
   int repeat_count = 10;
@@ -36,7 +40,9 @@ class generator;
   endtask
 endclass
   
-// --- Driver ---
+// ============================================================================
+// DRIVER CLASS
+// ============================================================================
 class my_driver;
   virtual my_interface.DRIVER_MP vif;
   mailbox #(my_transaction) gen2drv;
@@ -90,7 +96,9 @@ class my_driver;
   endtask
 endclass
 
-// --- Monitor ---
+// ============================================================================
+// MONITOR CLASS
+// ============================================================================
 class my_monitor;
   virtual my_interface.MONITOR_MP vif;
   mailbox #(my_transaction) mon2sb;
@@ -115,7 +123,9 @@ class my_monitor;
   endtask
 endclass
 
-// --- Scoreboard ---
+// ============================================================================
+// SCOREBOARD CLASS
+// ============================================================================
 class my_scoreboard;
   mailbox #(my_transaction) drv2sb;
   mailbox #(my_transaction) mon2sb;
@@ -152,7 +162,9 @@ class my_scoreboard;
   endtask
 endclass
 
-// --- Environment ---
+// ============================================================================
+// ENVIRONMENT CLASS
+// ============================================================================
 class environment;
   my_generator      gen;
   my_driver      drv;
@@ -237,7 +249,9 @@ class my_coverage;
   endfunction
 endclass
         
-// --- Top Module ---
+// ============================================================================
+// TESTBENCH TOP MODULE
+// ============================================================================
 module tb_top;
   bit clk;
   always #5 clk = ~clk;
